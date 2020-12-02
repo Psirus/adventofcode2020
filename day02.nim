@@ -40,7 +40,7 @@ type
     letter: char
 
 proc parseLine(line: string): (Policy, string) =
-  let s = split(line, ":")
+  let s = split(line, ": ")
   let (policy_string, password) = (s[0], s[1])
   let t = split(policy_string, " ")
   let (numbers, letter) = (t[0], t[1][0])
@@ -94,8 +94,8 @@ echo num_valid_passwords
 # policies?
 
 proc isValid2(policy: Policy, password: string): bool =
-  let left = policy.letter == password[policy.lower]
-  let right = policy.letter == password[policy.upper]
+  let left = policy.letter == password[policy.lower - 1]
+  let right = policy.letter == password[policy.upper - 1]
   result = left xor right
 
 num_valid_passwords = 0
