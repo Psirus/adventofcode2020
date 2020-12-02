@@ -1,5 +1,6 @@
 import streams
 import strutils
+import re
 
 # Your flight departs in a few days from the coastal airport; the easiest way
 # down to the coast from here is via toboggan.
@@ -39,15 +40,14 @@ type
     lower, upper: int
     letter: char
 
+let regex = re"(\d+)-(\d+) (\w): (\w+)"
+
 proc parseLine(line: string): (Policy, string) =
-  let s = split(line, ": ")
-  let (policy_string, password) = (s[0], s[1])
-  let t = split(policy_string, " ")
-  let (numbers, letter) = (t[0], t[1][0])
-  let u = split(numbers, "-")
-  let (lower, upper) = (parseInt(u[0]), parseInt(u[1]))
-  let policy = Policy(lower: lower, upper: upper, letter: letter)
-  result = (policy, password)
+  var matches: array[4, string]
+  doAssert match(line, regex, matches)
+  let (lower, upper) = (parseInt(matches[0]), parseInt(matches[1]))
+  let policy = Policy(lower: lower, upper: upper, letter: matches[2][0])
+  result = (policy, matches[3])
 
 proc readFile(filename: string): seq[(Policy, string)] =
   var line = ""
