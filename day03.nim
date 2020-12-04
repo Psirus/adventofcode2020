@@ -1,5 +1,4 @@
-import streams
-import strutils
+import streams, strutils
 
 # --- Day 3: Toboggan Trajectory ---
 # 
