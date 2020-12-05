@@ -1,6 +1,6 @@
 import streams, strutils, re, sequtils
 
-proc readFile(filename: string): seq[string] =
+proc readPassports(filename: string): seq[string] =
   var passport = ""
   var line = ""
   var file = newFileStream(filename, fmRead)
@@ -9,12 +9,14 @@ proc readFile(filename: string): seq[string] =
       if line == "":
         result.add(passport)
         passport = ""
+      elif passport == "":
+        passport &= line
       else:
         passport &= " " & line
     result.add(passport)
     file.close()
 
-let passports = readFile("input/day04")
+let passports = readPassports("input/day04")
 
 proc isValid(passport: string): bool =
   result = true
@@ -27,9 +29,7 @@ proc isValid2(passport: string): bool =
   if not passport.isValid: return false
   result = true
 
-  var passport_copy = passport
-  passport_copy.removePrefix(" ")
-  let fields = passport_copy.split(" ")
+  let fields = passport.split(" ")
   for field in fields:
     let parts = field.split(":")
     var (key, value) = (parts[0], parts[1])
@@ -58,7 +58,7 @@ proc isValid2(passport: string): bool =
       let regex = re"^#[0-9a-f]{6}$"
       if not match(value, regex): return false
     of "ecl":
-      if value notin @["amb","blu","brn","gry","grn","hzl","oth"]:
+      if value notin @["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]:
         return false
     of "pid":
       let regex = re"^\d{9}$"
