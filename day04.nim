@@ -18,17 +18,18 @@ proc readPassports(filename: string): seq[string] =
 
 let passports = readPassports("input/day04")
 
+
 proc isValid(passport: string): bool =
   result = true
-  for field in ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"]:
-    result = result and passport.contains(field & ":")
+  for field in ["byr:", "iyr:", "eyr:", "hgt:", "hcl:", "ecl:", "pid:"]:
+    result = result and passport.contains(field)
 
-echo passports.filter(isValid).len
+let fewer_passports = passports.filter(isValid)
+
+echo fewer_passports.len
 
 proc isValid2(passport: string): bool =
-  if not passport.isValid: return false
   result = true
-
   let fields = passport.split(" ")
   for field in fields:
     let parts = field.split(":")
@@ -64,4 +65,4 @@ proc isValid2(passport: string): bool =
       let regex = re"^\d{9}$"
       if not match(value, regex): return false
 
-echo passports.filter(isValid2).len
+echo fewer_passports.filter(isValid2).len
