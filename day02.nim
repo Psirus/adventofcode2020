@@ -1,4 +1,4 @@
-import streams, strutils, re, sequtils
+import streams, strutils, re
 
 type
   Policy = object
