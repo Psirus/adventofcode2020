@@ -83,7 +83,7 @@ task musl, "Builds an optimized static binary using musl":
            "  Examples: nim musl FILE.nim",
            "            nim musl FILE1.nim FILE2.nim"].mapconcat("\n"))
   # optimization
-  switches = @["-d:danger", "-d:pcre", "--gc:arc"]
+  switches.add(@["-d:danger", "-d:pcre"])
 
   for f in nimFiles:
     let
