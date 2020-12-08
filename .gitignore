@@ -1,3 +1,9 @@
 day*
 !day*.nim
 !input/day*
+
+run_all.sh
+allDays*
+pcre
+combine_all
+benchmark*
