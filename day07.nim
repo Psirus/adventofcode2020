@@ -1,51 +1,42 @@
-import streams, strutils, re, sequtils
+import strutils, tables, sets, parseutils
 
-type
-  Rule = object
-    container: string
-    contents: seq[(int, string)]
+proc parseLine(line: string): (string, seq[(int, string)]) =
+    let s = line.split(" bags contain ")
+    let (container_str, content_str) = (s[0], s[1])
+    if content_str.startsWith("no"):
+      return (container_str, @[])
 
-proc readRules(filename: string): seq[Rule] =
-  var line = ""
-  var matches: array[2, string]
-  var file = newFileStream(filename, fmRead)
-  if not isNil(file):
-    while file.readLine(line):
-      let s = line.split(" bags contain ")
-      let (container_str, content_str) = (s[0], s[1])
-      if content_str.startsWith("no"):
-        result.add(Rule(container: container_str, contents: @[]))
-        continue
+    var content_list: seq[(int, string)]
+    var color: string
+    for content in content_str.split(", "):
+      discard content[2..^1].parseUntil(color, " bag")
+      let num = parseInt($(content[0]))
+      content_list.add((num, color))
+    result = (container_str, content_list)
 
-      var content_list: seq[(int, string)]
-      for content in content_str.split(", "):
-        doAssert content.match(re"(\d) ([a-z ]*) bag", matches)
-        content_list.add((matches[0].parseInt, matches[1]))
-      result.add(Rule(container: container_str, contents: content_list))
-    file.close()
+let input = "input/day07".open.readAll.splitLines
 
-let rules = readRules("input/day07")
+var inverted_table = initTable[string, seq[string]]()
+var rules_table = initTable[string, seq[(int, string)]]()
 
-proc num_containers(color_list: seq[string], new_colors: seq[string]): (seq[string], seq[string]) =
-  if new_colors.len == 0:
-    return (color_list, new_colors)
+for line in input:
+  if line.len == 0:
+    continue
+  let (container, contents) = parseLine(line)
+  for content in contents:
+    inverted_table.mgetOrPut(content[1], @[]).add(container)
+  rules_table[container] = contents
 
-  result[0] = color_list
-  result[1] = @[]
-  for color in new_colors:
-    for rule in rules:
-      for subcontent in rule.contents:
-        if subcontent[1] == color:
-          result[1].add(rule.container)
-  
-  result[1] = result[1].deduplicate
-  for color in result[1]:
-    if color notin result[0]:
-      result[0].add(color)
-  return num_containers(result[0], result[1])
 
-let (color_list, new_colors) = num_containers(@[], @["shiny gold"])
-echo color_list.len
+proc num_containers(table: Table[string, seq[string]], color_list: var HashSet[string], color: string) =
+  let container_colors = table.getOrDefault(color)
+  for new_color in container_colors:
+    color_list.incl(new_color)
+    num_containers(table, color_list, new_color)
+
+var color_set = initHashSet[string]()
+num_containers(inverted_table, color_set, "shiny gold")
+echo color_set.len
 
 proc num_contents(color_list: seq[string]): int =
   if color_list.len == 0:
@@ -54,10 +45,9 @@ proc num_contents(color_list: seq[string]): int =
   var num = 0
   var inside_colors: seq[string] = @[]
   for color in color_list:
-    for rule in rules:
-      if rule.container == color:
-        for subcontent in rule.contents:
-          num += subcontent[0] + subcontent[0] * num_contents(@[subcontent[1]])
+    let rule = rules_table[color]
+    for subcontent in rule:
+      num += subcontent[0] + subcontent[0] * num_contents(@[subcontent[1]])
   
   return num + num_contents(inside_colors)
 
